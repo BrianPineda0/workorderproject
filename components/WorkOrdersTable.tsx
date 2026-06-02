@@ -21,16 +21,24 @@ interface Column {
   key: keyof WorkOrder;
   label: string;
   align?: "right";
+  // Direction applied when this column first becomes the sort column. Defaults
+  // to "asc"; set "desc" where highest-first is the more useful first view.
+  defaultDirection?: SortDirection;
 }
 
 const COLUMNS: Column[] = [
   { key: "id", label: "ID" },
   { key: "customer", label: "Customer" },
   { key: "status", label: "Status" },
-  { key: "priority", label: "Priority" },
+  { key: "priority", label: "Priority", defaultDirection: "desc" },
   { key: "assignedTech", label: "Assigned Tech" },
   { key: "scheduledDate", label: "Scheduled Date" },
-  { key: "hoursWorked", label: "Hours Worked", align: "right" },
+  {
+    key: "hoursWorked",
+    label: "Hours Worked",
+    align: "right",
+    defaultDirection: "desc",
+  },
 ];
 
 type StatusFilter = WorkOrderStatus | "ALL";
@@ -73,8 +81,10 @@ export default function WorkOrdersTable({ workOrders }: WorkOrdersTableProps) {
     if (column === sortColumn) {
       setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
     } else {
+      const defaultDirection =
+        COLUMNS.find((c) => c.key === column)?.defaultDirection ?? "asc";
       setSortColumn(column);
-      setSortDirection("asc");
+      setSortDirection(defaultDirection);
     }
   }
 
