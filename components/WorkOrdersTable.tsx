@@ -1,4 +1,5 @@
 import type { WorkOrder } from "@/lib/types";
+import StatusBadge from "@/components/StatusBadge";
 
 interface WorkOrdersTableProps {
   workOrders: WorkOrder[];
@@ -26,8 +27,8 @@ export default function WorkOrdersTable({ workOrders }: WorkOrdersTableProps) {
                 {order.id}
               </td>
               <td className="px-4 py-3 text-slate-700">{order.customer}</td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {order.status}
+              <td className="whitespace-nowrap px-4 py-3">
+                <StatusBadge status={order.status} />
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-slate-700">
                 {order.priority}
