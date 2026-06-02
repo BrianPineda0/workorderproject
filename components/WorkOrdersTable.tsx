@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { WorkOrder } from "@/lib/types";
-import StatusBadge from "@/components/StatusBadge";
+import type { WorkOrder, WorkOrderStatus } from "@/lib/types";
+import StatusBadge, { STATUS_LABELS } from "@/components/StatusBadge";
 
 interface WorkOrdersTableProps {
   workOrders: WorkOrder[];
@@ -25,6 +25,12 @@ const COLUMNS: Column[] = [
   { key: "scheduledDate", label: "Scheduled Date" },
   { key: "hoursWorked", label: "Hours Worked", align: "right" },
 ];
+
+// Derived from STATUS_LABELS so the dropdown stays in sync with the badges and
+// every status automatically gets an option. "ALL" is handled separately.
+const STATUS_OPTIONS = Object.keys(STATUS_LABELS) as WorkOrderStatus[];
+
+type StatusFilter = WorkOrderStatus | "ALL";
 
 /**
  * Compare two work orders on a column, handling each data type explicitly:
@@ -55,6 +61,8 @@ function compareWorkOrders(
 export default function WorkOrdersTable({ workOrders }: WorkOrdersTableProps) {
   const [sortColumn, setSortColumn] = useState<keyof WorkOrder>("id");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
+  const [search, setSearch] = useState("");
 
   function handleSort(column: keyof WorkOrder) {
     if (column === sortColumn) {
@@ -65,80 +73,142 @@ export default function WorkOrdersTable({ workOrders }: WorkOrdersTableProps) {
     }
   }
 
-  const sortedOrders = useMemo(() => {
-    // Sort a copy — never mutate the prop array.
-    const copy = [...workOrders];
-    copy.sort((a, b) => {
+  const visibleOrders = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    // filter() returns a new array, so the later sort never mutates the prop.
+    const filtered = workOrders.filter((order) => {
+      const matchesStatus =
+        statusFilter === "ALL" || order.status === statusFilter;
+      const matchesSearch = order.customer.toLowerCase().includes(query);
+      return matchesStatus && matchesSearch;
+    });
+    filtered.sort((a, b) => {
       const result = compareWorkOrders(a, b, sortColumn);
       return sortDirection === "asc" ? result : -result;
     });
-    return copy;
-  }, [workOrders, sortColumn, sortDirection]);
+    return filtered;
+  }, [workOrders, statusFilter, search, sortColumn, sortDirection]);
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
-      <table className="w-full border-collapse text-sm">
-        <thead>
-          <tr className="border-b border-slate-200 bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            {COLUMNS.map((col) => {
-              const isActive = sortColumn === col.key;
-              return (
-                <th
-                  key={col.key}
-                  scope="col"
-                  aria-sort={
-                    isActive
-                      ? sortDirection === "asc"
-                        ? "ascending"
-                        : "descending"
-                      : "none"
-                  }
-                  className={`px-4 py-3 ${col.align === "right" ? "text-right" : "text-left"}`}
-                >
-                  <button
-                    type="button"
-                    onClick={() => handleSort(col.key)}
-                    className={`flex w-full items-center gap-1 rounded hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-                      col.align === "right" ? "justify-end" : "justify-start"
-                    }`}
+    <div>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="flex flex-col gap-1">
+          <label
+            htmlFor="status-filter"
+            className="text-xs font-medium text-slate-600"
+          >
+            Status
+          </label>
+          <select
+            id="status-filter"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+            className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            <option value="ALL">All</option>
+            {STATUS_OPTIONS.map((status) => (
+              <option key={status} value={status}>
+                {STATUS_LABELS[status]}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1 sm:max-w-xs sm:flex-1">
+          <label
+            htmlFor="customer-search"
+            className="text-xs font-medium text-slate-600"
+          >
+            Search
+          </label>
+          <input
+            id="customer-search"
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search customer…"
+            className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+
+      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              {COLUMNS.map((col) => {
+                const isActive = sortColumn === col.key;
+                return (
+                  <th
+                    key={col.key}
+                    scope="col"
+                    aria-sort={
+                      isActive
+                        ? sortDirection === "asc"
+                          ? "ascending"
+                          : "descending"
+                        : "none"
+                    }
+                    className={`px-4 py-3 ${col.align === "right" ? "text-right" : "text-left"}`}
                   >
-                    <span>{col.label}</span>
-                    {/* Fixed-width slot so headers don't shift when the arrow appears. */}
-                    <span aria-hidden="true" className="inline-block w-3 text-center">
-                      {isActive ? (sortDirection === "asc" ? "↑" : "↓") : ""}
-                    </span>
-                  </button>
-                </th>
-              );
-            })}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
-          {sortedOrders.map((order) => (
-            <tr key={order.id} className="hover:bg-slate-50">
-              <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900">
-                {order.id}
-              </td>
-              <td className="px-4 py-3 text-slate-700">{order.customer}</td>
-              <td className="whitespace-nowrap px-4 py-3">
-                <StatusBadge status={order.status} />
-              </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {order.priority}
-              </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {order.assignedTech}
-              </td>
-              <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                {order.scheduledDate}
-              </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-slate-700">
-                {order.hoursWorked}
-              </td>
+                    <button
+                      type="button"
+                      onClick={() => handleSort(col.key)}
+                      className={`flex w-full items-center gap-1 rounded hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                        col.align === "right" ? "justify-end" : "justify-start"
+                      }`}
+                    >
+                      <span>{col.label}</span>
+                      {/* Fixed-width slot so headers don't shift when the arrow appears. */}
+                      <span
+                        aria-hidden="true"
+                        className="inline-block w-3 text-center"
+                      >
+                        {isActive ? (sortDirection === "asc" ? "↑" : "↓") : ""}
+                      </span>
+                    </button>
+                  </th>
+                );
+              })}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {visibleOrders.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={COLUMNS.length}
+                  className="px-4 py-12 text-center text-sm text-slate-500"
+                >
+                  No work orders match your filters.
+                </td>
+              </tr>
+            ) : (
+              visibleOrders.map((order) => (
+                <tr key={order.id} className="hover:bg-slate-50">
+                  <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900">
+                    {order.id}
+                  </td>
+                  <td className="px-4 py-3 text-slate-700">{order.customer}</td>
+                  <td className="whitespace-nowrap px-4 py-3">
+                    <StatusBadge status={order.status} />
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-slate-700">
+                    {order.priority}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-slate-700">
+                    {order.assignedTech}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-slate-700">
+                    {order.scheduledDate}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-slate-700">
+                    {order.hoursWorked}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
