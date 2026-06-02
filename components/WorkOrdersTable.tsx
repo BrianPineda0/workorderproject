@@ -90,7 +90,6 @@ export default function WorkOrdersTable({ workOrders }: WorkOrdersTableProps) {
 
   const visibleOrders = useMemo(() => {
     const query = search.trim().toLowerCase();
-    // filter() returns a new array, so the later sort never mutates the prop.
     const filtered = workOrders.filter((order) => {
       const matchesStatus =
         statusFilter === "ALL" || order.status === statusFilter;
@@ -133,7 +132,7 @@ export default function WorkOrdersTable({ workOrders }: WorkOrdersTableProps) {
             htmlFor="customer-search"
             className="text-xs font-medium text-slate-600"
           >
-            Search
+            Customer search
           </label>
           <input
             id="customer-search"
