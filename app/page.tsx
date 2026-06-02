@@ -1,3 +1,6 @@
+import WorkOrdersTable from "@/components/WorkOrdersTable";
+import { workOrders } from "@/lib/workOrders";
+
 export default function Home() {
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
@@ -5,6 +8,9 @@ export default function Home() {
       <p className="mt-1 text-sm text-slate-500">
         Field service work orders across all customers and technicians.
       </p>
+      <div className="mt-6">
+        <WorkOrdersTable workOrders={workOrders} />
+      </div>
     </main>
   );
 }
