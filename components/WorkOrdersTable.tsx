@@ -32,6 +32,17 @@ const STATUS_OPTIONS = Object.keys(STATUS_LABELS) as WorkOrderStatus[];
 
 type StatusFilter = WorkOrderStatus | "ALL";
 
+// Sort status by job lifecycle, not alphabetically — far more useful to a
+// dispatcher scanning the board than A→Z.
+const STATUS_RANK: Record<WorkOrderStatus, number> = {
+  NEW: 1,
+  SCHEDULED: 2,
+  IN_PROGRESS: 3,
+  WAITING_ON_PARTS: 4,
+  COMPLETED: 5,
+  CANCELLED: 6,
+};
+
 /**
  * Compare two work orders on a column, handling each data type explicitly:
  * numbers numerically, dates by timestamp, everything else as strings.
@@ -49,10 +60,11 @@ function compareWorkOrders(
       return (
         new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()
       );
+    case "status":
+      return STATUS_RANK[a.status] - STATUS_RANK[b.status];
     case "id":
     case "customer":
     case "assignedTech":
-    case "status":
     case "priority":
       return a[column].localeCompare(b[column]);
   }
