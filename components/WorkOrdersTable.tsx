@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { WorkOrder, WorkOrderStatus } from "@/lib/types";
+import type { WorkOrder, WorkOrderStatus, WorkOrderPriority } from "@/lib/types";
 import StatusBadge, { STATUS_LABELS } from "@/components/StatusBadge";
 
 interface WorkOrdersTableProps {
@@ -43,6 +43,15 @@ const STATUS_RANK: Record<WorkOrderStatus, number> = {
   CANCELLED: 6,
 };
 
+// Sort priority by severity, not alphabetically — a dispatcher wants the most
+// urgent jobs to surface, not "HIGH" landing between "URGENT" and "LOW".
+const PRIORITY_RANK: Record<WorkOrderPriority, number> = {
+  LOW: 1,
+  MEDIUM: 2,
+  HIGH: 3,
+  URGENT: 4,
+};
+
 /**
  * Compare two work orders on a column, handling each data type explicitly:
  * numbers numerically, dates by timestamp, everything else as strings.
@@ -62,10 +71,11 @@ function compareWorkOrders(
       );
     case "status":
       return STATUS_RANK[a.status] - STATUS_RANK[b.status];
+    case "priority":
+      return PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
     case "id":
     case "customer":
     case "assignedTech":
-    case "priority":
       return a[column].localeCompare(b[column]);
   }
 }
