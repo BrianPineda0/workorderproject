@@ -1,12 +1,7 @@
-export type WorkOrderStatus =
-  | "NEW"
-  | "SCHEDULED"
-  | "IN_PROGRESS"
-  | "WAITING_ON_PARTS"
-  | "COMPLETED"
-  | "CANCELLED";
+import type { WorkOrderStatus, WorkOrderPriority } from "@/lib/workOrderMeta";
 
-export type WorkOrderPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+// Re-export the domain types so existing `@/lib/types` imports keep working.
+export type { WorkOrderStatus, WorkOrderPriority };
 
 export interface WorkOrder {
   id: string;

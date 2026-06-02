@@ -1,17 +1,4 @@
-import type { WorkOrderStatus } from "@/lib/types";
-
-/**
- * Human-readable labels for each status. Exported so other UI (e.g. the status
- * filter dropdown) reuses the exact same text and labels can't drift.
- */
-export const STATUS_LABELS: Record<WorkOrderStatus, string> = {
-  NEW: "New",
-  SCHEDULED: "Scheduled",
-  IN_PROGRESS: "In progress",
-  WAITING_ON_PARTS: "Waiting on parts",
-  COMPLETED: "Completed",
-  CANCELLED: "Cancelled",
-};
+import { STATUS_LABELS, type WorkOrderStatus } from "@/lib/workOrderMeta";
 
 /**
  * Pill + dot colors per status. Typed as a full Record so adding a status to

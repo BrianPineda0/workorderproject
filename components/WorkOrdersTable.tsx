@@ -1,8 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { WorkOrder, WorkOrderStatus, WorkOrderPriority } from "@/lib/types";
-import StatusBadge, { STATUS_LABELS } from "@/components/StatusBadge";
+import type { WorkOrder } from "@/lib/types";
+import {
+  PRIORITY_RANK,
+  STATUS_LABELS,
+  STATUS_RANK,
+  WORK_ORDER_STATUSES,
+  type WorkOrderStatus,
+} from "@/lib/workOrderMeta";
+import StatusBadge from "@/components/StatusBadge";
 
 interface WorkOrdersTableProps {
   workOrders: WorkOrder[];
@@ -26,31 +33,7 @@ const COLUMNS: Column[] = [
   { key: "hoursWorked", label: "Hours Worked", align: "right" },
 ];
 
-// Derived from STATUS_LABELS so the dropdown stays in sync with the badges and
-// every status automatically gets an option. "ALL" is handled separately.
-const STATUS_OPTIONS = Object.keys(STATUS_LABELS) as WorkOrderStatus[];
-
 type StatusFilter = WorkOrderStatus | "ALL";
-
-// Sort status by job lifecycle, not alphabetically — far more useful to a
-// dispatcher scanning the board than A→Z.
-const STATUS_RANK: Record<WorkOrderStatus, number> = {
-  NEW: 1,
-  SCHEDULED: 2,
-  IN_PROGRESS: 3,
-  WAITING_ON_PARTS: 4,
-  COMPLETED: 5,
-  CANCELLED: 6,
-};
-
-// Sort priority by severity, not alphabetically — a dispatcher wants the most
-// urgent jobs to surface, not "HIGH" landing between "URGENT" and "LOW".
-const PRIORITY_RANK: Record<WorkOrderPriority, number> = {
-  LOW: 1,
-  MEDIUM: 2,
-  HIGH: 3,
-  URGENT: 4,
-};
 
 /**
  * Compare two work orders on a column, handling each data type explicitly:
@@ -128,7 +111,7 @@ export default function WorkOrdersTable({ workOrders }: WorkOrdersTableProps) {
             className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           >
             <option value="ALL">All</option>
-            {STATUS_OPTIONS.map((status) => (
+            {WORK_ORDER_STATUSES.map((status) => (
               <option key={status} value={status}>
                 {STATUS_LABELS[status]}
               </option>
