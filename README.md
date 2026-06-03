@@ -41,3 +41,13 @@ npm run dev
 ```
 
 Open http://localhost:3000.
+
+## Reflection
+
+Claude Code and Codex assisted with the implementation of this project. They helped with setup, planning, the mock dataset, and the first version of the table, sorting, filtering, and search. I drove the work in small commits, building the project up piece by piece instead of having everything already integrated and committing it all at once. My focus was reviewing what both tools gave me and making choices based on what would benefit the app most.
+
+The main thing I cared about was data and structure. I made sure the 20 work orders made sense, so hoursWorked matched status. New and scheduled jobs stayed at 0, in progress jobs had partial hours, and completed jobs had believable totals. I also kept page.tsx as a Server Component and put the interactive state in one client table component, so the app stayed simple and matched the scope.
+
+The biggest thing I rewrote was sorting. The first version compared every column the same way, so Status and Priority sorted alphabetically instead of by meaning. I replaced that with rank maps for status and priority, while hours sort numerically and dates sort by time. This makes the table more useful because priority and workflow order actually mean something to the user.
+
+With more time, I would add tests for filtering and sorting logic, cleaner date formatting, a result count, and URL synced filters. With setup and planning, I finished a little under the 2 hour mark. BUILD_LOG.md also explains the commit history and includes a timeline of the build.

@@ -82,6 +82,8 @@ precision fixes: clarifying the customer-search label and trimming a stale comme
 
 Commits in build order, from the git history:
 
+### Functional commits
+
 - `2026-06-01 22:31` — scaffold Next.js 14 + Tailwind
 - `2026-06-01 22:39` — add work order type and mock data
 - `2026-06-01 22:44` — render work orders table
@@ -95,9 +97,7 @@ Commits in build order, from the git history:
 - `2026-06-01 23:57` — add per-column default sort direction
 - `2026-06-01 23:59` — clarify search label and trim comment
 
-Functional Commits done
-
-Addtional informational commits not for platform improvement or use
+### Documentation commits
 
 - `2026-06-02 00:35` — add README and CLAUDE.md
 - `2026-06-02 15:41` — add build log
